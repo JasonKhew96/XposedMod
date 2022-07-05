@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Xposed Mod</string>
+    <string name="xposed_description">Example Xposed Module</string>
+    <string name="package_fairmail" translatable="false">eu.faircode.email</string>
+    <string name="package_flexbooru" translatable="false">onlymash.flexbooru.play</string>
+    <string name="package_youtube_music" translatable="false">com.google.android.apps.youtube.music</string>
+    <string name="package_youtube" translatable="false">com.google.android.youtube</string>
+</resources>

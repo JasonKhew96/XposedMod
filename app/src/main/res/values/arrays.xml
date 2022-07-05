@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="xposed_scope">
+        <item>@string/package_fairmail</item>
+        <item>@string/package_flexbooru</item>
+        <item>@string/package_youtube_music</item>
+        <item>@string/package_youtube</item>
+    </array>
+</resources>
