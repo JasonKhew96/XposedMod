@@ -121,6 +121,35 @@ class XposedInit : IXposedHookLoadPackage {
             XposedBridge.hookMethod(
                 isBackgroundAllowedMethod, XC_MethodReplacement.returnConstant(true)
             )
+
+            val showVideoAdsMethodIndex = dexHelper.findMethodUsingString(
+                "loadVideo() called on LocalDirector in wrong state",
+                false,
+                -1,
+                2,
+                null,
+                -1,
+                null,
+                null,
+                null,
+                true
+            ).firstOrNull() ?: return
+            val shouldShowVideoAdsMethod = dexHelper.findMethodInvoking(
+                showVideoAdsMethodIndex,
+                dexHelper.encodeClassIndex(Void.TYPE),
+                1,
+                null,
+                -1,
+                longArrayOf(dexHelper.encodeClassIndex(Boolean::class.java)),
+                null,
+                null,
+                true,
+            ).asSequence().firstNotNullOfOrNull {
+                dexHelper.decodeMethodIndex(it)
+            } ?: return
+            XposedBridge.hookMethod(
+                shouldShowVideoAdsMethod, XC_MethodReplacement.returnConstant(false)
+            )
         }
 
         fun hookYouTube(classLoader: ClassLoader) {
