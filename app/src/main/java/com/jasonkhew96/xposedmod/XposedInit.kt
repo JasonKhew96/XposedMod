@@ -29,6 +29,9 @@ class XposedInit : IXposedHookLoadPackage {
                         if (lpparam?.processName == "com.google.android.youtube") {
                             hookYouTube(lpparam.classLoader)
                         }
+                        if (lpparam?.processName == "studio.scillarium.ottnavigator") {
+                            hookOttNavigator(lpparam.classLoader)
+                        }
                     } catch (t: Throwable) {
                         Log.e(TAG, "Failed to hook ${lpparam?.processName}", t)
                     }
@@ -189,6 +192,43 @@ class XposedInit : IXposedHookLoadPackage {
             XposedBridge.hookMethod(
                 shouldShowVideoAdsMethod, XC_MethodReplacement.returnConstant(false)
             )
+        }
+        
+        fun hookOttNavigator(classLoader: ClassLoader) {
+            Log.d(TAG, "Hooking OTT Navigator")
+            try {
+                System.loadLibrary("xposedmod")
+            } catch (e: Throwable) {
+                Log.d(TAG, "Unable to load library" + e.message)
+                return
+            }
+            val dexHelper = DexHelper(classLoader.findDexClassLoader() ?: return)
+            val premiumClass = dexHelper.findMethodUsingString(
+                "cmp3",
+                false,
+                dexHelper.encodeClassIndex(Void.TYPE),
+                0,
+                null,
+                -1,
+                null,
+                null,
+                null,
+                true
+            ).asSequence().firstNotNullOfOrNull { 
+                dexHelper.decodeMethodIndex(it)?.declaringClass
+            } ?: return
+            for (method in premiumClass.declaredMethods) {
+                if (method.returnType == Int::class.java) {
+                    XposedBridge.hookMethod(
+                        method, XC_MethodReplacement.returnConstant(2)
+                    )
+                }
+                if (method.returnType == Boolean::class.java && method.parameterTypes.isEmpty()) {
+                    XposedBridge.hookMethod(
+                        method, XC_MethodReplacement.returnConstant(true)
+                    )
+                }
+            }
         }
     }
 }
