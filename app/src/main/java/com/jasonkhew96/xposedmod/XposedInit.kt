@@ -192,8 +192,47 @@ class XposedInit : IXposedHookLoadPackage {
             XposedBridge.hookMethod(
                 shouldShowVideoAdsMethod, XC_MethodReplacement.returnConstant(false)
             )
+
+            val offlinePrefsFragmentRunnableMethodIndex = dexHelper.findMethodUsingString(
+                "background_pip_policy_v2",
+                false,
+                dexHelper.encodeClassIndex(Void.TYPE),
+                0,
+                null,
+                dexHelper.encodeClassIndex(classLoader.loadClass("com.google.android.apps.youtube.app.settings.GeneralPrefsFragment")),
+                null,
+                null,
+                null,
+                true,
+            ).firstOrNull() ?: return
+            val minimizePlaybackSettingsMethod = dexHelper.findMethodInvoking(
+                offlinePrefsFragmentRunnableMethodIndex,
+                dexHelper.encodeClassIndex(Boolean::class.java),
+                0,
+                null,
+                -1,
+                null,
+                null,
+                null,
+                false,
+            ).filter {
+                dexHelper.decodeMethodIndex(it)?.declaringClass?.let { c ->
+                    !c.isInterface
+                } ?: false
+            }.firstNotNullOfOrNull { dexHelper.decodeMethodIndex(it) } ?: return
+            XposedBridge.hookMethod(
+                minimizePlaybackSettingsMethod, XC_MethodReplacement.returnConstant(true)
+            )
+
+            // TODO fix this
+            XposedHelpers.findAndHookMethod(
+                classLoader.loadClass("zdn"),
+                "k",
+                classLoader.loadClass("ajfe"),
+                XC_MethodReplacement.returnConstant(true)
+            )
         }
-        
+
         fun hookOttNavigator(classLoader: ClassLoader) {
             Log.d(TAG, "Hooking OTT Navigator")
             try {
@@ -214,7 +253,7 @@ class XposedInit : IXposedHookLoadPackage {
                 null,
                 null,
                 true
-            ).asSequence().firstNotNullOfOrNull { 
+            ).asSequence().firstNotNullOfOrNull {
                 dexHelper.decodeMethodIndex(it)?.declaringClass
             } ?: return
             for (method in premiumClass.declaredMethods) {
